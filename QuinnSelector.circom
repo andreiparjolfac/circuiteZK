@@ -1,22 +1,31 @@
-pragma circom 2.1.6;
-
-include "circomlib/poseidon.circom";
-// include "https://github.com/0xPARC/circom-secp256k1/blob/master/circuits/bigint.circom";
-
-template QuinSelector(n){
-    signal input ins[n];
-    signal input k;
+template QuinnSelector(nChoices){
+    signal input ins[nChoices];
+    signal input index;
     signal output out;
 
-    assert(k>=0);
-    assert(k<=n);
+    component lt = LessThan(4);
 
-    out<--ins[k];
+    lt.ins[0]<==index;
+    lt.ins[1]<==nChoices;
+    lt.out === 1;
+
+    component nadder = nAdd(nChoices);
+    component eqs[nChoices];
+
+    for(var i=0;i<nChoices;i++){
+        eqs[i]=IsEqual();
+        eqs[i].ins[0]<==i;
+        eqs[i].ins[1]<==index;
+        nadder.ins[i]<==eqs[i].out*ins[i];
+    }
+
+    out<==nadder.out;
+
 }
 
-component main = QuinSelector(5);
+component main = QuinnSelector(5);
 
 /* INPUT = {
     "ins":["1","2","3","4","5"],
-    "k":"2"
+    "index":"4"
 } */
